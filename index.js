@@ -53,26 +53,33 @@ client.on('messageCreate', async (message) => {
                 `${GEMINI_API_ENDPOINT}?key=${API_KEY}`, // Add API key in URL as query parameter
                 {
                     prompt: { text: userQuery }, // Prompt object format
-                    temperature: 0.7,
-                    candidate_count: 1,
+                    temperature: 0.7, // Controls randomness of responses
+                    candidate_count: 1, // Only return 1 response candidate
                 },
                 {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
 
+            // Check if response contains valid output
             const apiResponse =
-                response.data.candidates[0]?.output || 'I couldn’t understand that. Please try rephrasing.';
+                response.data.candidates?.[0]?.output || 'I couldn’t understand that. Please try rephrasing.';
             message.reply(apiResponse);
 
         } catch (error) {
-            // Error handling for API and request issues
+            // Enhanced error handling for API and request issues
             if (error.response) {
+                // Detailed error response from Gemini API
                 console.error('🚨 Gemini API Error:', error.response.data);
                 message.reply(
                     `❗ There was an issue with the Gemini API: ${error.response.data.error?.message || 'Unknown error.'}`
                 );
+            } else if (error.request) {
+                // If the request was made but no response was received
+                console.error('🚨 No response received:', error.request);
+                message.reply('❗ Sorry, no response was received from the Gemini API.');
             } else {
+                // General error handling (e.g., issues in your code)
                 console.error('🚨 Error:', error.message);
                 message.reply('❗ Sorry, I couldn’t process your request. Please try again later.');
             }
